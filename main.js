@@ -2,7 +2,8 @@ class Transaction {
     constructor() {
         this.IndexARR = [];
         this.logs = [];
-        this.store = {}
+        this.store = {};
+        this.storeBF = {};
         this.BeforeLogs = [];
         this.NewScenario = [];
         this.NewOBJForLogs = {};
@@ -31,17 +32,20 @@ class Transaction {
 
         for (var element of this.NewScenario) {
             try {
-                var callValue = await element.call({});
+                var callValue = await element.call();
                 this.NewOBJForLogs = {};
                 Object.assign(this.NewOBJForLogs, {
                     index: element.index,
                     meta: element.meta,
-                    storeBefore: {},
+                    storeBefore: this.storeBF,
                     storeAfter: callValue,
                     error: null
                 })
                 this.logs.push(this.NewOBJForLogs)
-                this.store = null
+                this.storeBF = {};
+                Object.assign(this.storeBF, {
+                    before: callValue
+                })
             } catch (err) {
                 if (typeof element.restore == 'undefined') {
                     this.NewOBJForLogs = {};
@@ -60,7 +64,7 @@ class Transaction {
                     })
                 } else if (typeof element.restore !== 'undefined') {
                     try {
-                        var Restored = await element.restore("restored");
+                        var Restored = await element.restore("rollBacked");
                         this.NewOBJForLogs = {};
                         Object.assign(this.NewOBJForLogs, {
                             index: element.index,
@@ -68,8 +72,8 @@ class Transaction {
                             storeBefore: {},
                             storeAfter: Restored
                         })
+                        this.storeBF = {};
                         this.logs.push(this.NewOBJForLogs);
-                        this.store = null
                     } catch (er) {
                         this.NewOBJForLogs = {};
                         Object.assign(this.NewOBJForLogs, {
@@ -95,15 +99,15 @@ class Transaction {
 }
 
 const scenario = [{
-        index: 30,
+        index: 1,
         meta: {
             title: 'Read popular customers',
             description: 'This action is responsible for reading the most popular customers'
         },
         // callback for main execution
         call: async(store) => {
-            // return store;
-            throw new Error("dima mezrishvili")
+            return 1;
+            // throw new Error("dima mezrishvili")
         },
         // // callback for rollback
         restore: async(store) => {
@@ -112,14 +116,48 @@ const scenario = [{
         }
     },
     {
-        index: 50,
+        index: 2,
         meta: {
             title: 'Delete customer',
             description: 'This action is responsible for deleting customer'
         },
         // callback for main execution
         call: async(store) => {
+            return 2;
+            // throw new Error("Call Error for scenario 2")
+        },
+        // callback for rollback
+        restore: async(store) => {
             return store;
+            // throw new Error("Restore Error for scenario 2")
+        }
+    },
+    {
+        index: 3,
+        meta: {
+            title: 'Delete customer',
+            description: 'This action is responsible for deleting customer'
+        },
+        // callback for main execution
+        call: async(store) => {
+            // return 2;
+            throw new Error("Call Error for scenario 2")
+        },
+        // callback for rollback
+        restore: async(store) => {
+            return store;
+            throw new Error("Restore Error for scenario 2")
+        }
+    },
+    {
+        index: 4,
+        meta: {
+            title: 'Delete customer',
+            description: 'This action is responsible for deleting customer'
+        },
+        // callback for main execution
+        call: async(store) => {
+            return 2;
             throw new Error("Call Error for scenario 2")
         },
         // callback for rollback
