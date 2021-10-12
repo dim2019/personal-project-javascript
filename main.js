@@ -2,6 +2,7 @@ class Transaction {
     constructor() {
         this.IndexARR = [];
         this.logs = [];
+        this.store = {}
         this.BeforeLogs = [];
         this.NewScenario = [];
         this.NewOBJForLogs = {};
@@ -27,7 +28,8 @@ class Transaction {
                 }
             })
         }
-        this.NewScenario.forEach(async(element) => {
+
+        for (var element of this.NewScenario) {
             try {
                 var callValue = await element.call({});
                 this.NewOBJForLogs = {};
@@ -39,9 +41,8 @@ class Transaction {
                     error: null
                 })
                 this.logs.push(this.NewOBJForLogs)
+                this.store = null
             } catch (err) {
-                var Restored = await element.restore("restored")
-                console.log(Restored);
                 if (typeof element.restore == 'undefined') {
                     this.NewOBJForLogs = {};
                     Object.assign(this.NewOBJForLogs, {
@@ -54,21 +55,42 @@ class Transaction {
                         }
                     })
                     this.logs.push(this.NewOBJForLogs);
-                } else if (typeof element.restore !== 'undefined') {
-                    this.NewOBJForLogs = {};
-                    Object.assign(this.NewOBJForLogs, {
-                        storeBefore: {},
-                        storeAfter: "Restored",
-                        error: {
-                            name: err.name,
-                            message: err.message,
-                            // stack: err.stack
-                        }
+                    Object.assign(this.store, {
+                        error: err.message
                     })
-                    this.logs.push(this.NewOBJForLogs);
+                } else if (typeof element.restore !== 'undefined') {
+                    try {
+                        var Restored = await element.restore("restored");
+                        this.NewOBJForLogs = {};
+                        Object.assign(this.NewOBJForLogs, {
+                            index: element.index,
+                            meta: element.meta,
+                            storeBefore: {},
+                            storeAfter: Restored
+                        })
+                        this.logs.push(this.NewOBJForLogs);
+                        this.store = null
+                    } catch (er) {
+                        this.NewOBJForLogs = {};
+                        Object.assign(this.NewOBJForLogs, {
+                            index: element.index,
+                            meta: element.meta,
+                            error: {
+                                name: er.name,
+                                message: er.message,
+                                // stack: err.stack
+                            }
+
+                        })
+                        this.logs.push(this.NewOBJForLogs);
+                        Object.assign(this.store, {
+                            error: er.message
+                        })
+                    }
+
                 }
             }
-        })
+        } /* loop ending*/
     }
 }
 
@@ -80,11 +102,13 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
+            // return store;
             throw new Error("dima mezrishvili")
         },
         // // callback for rollback
         restore: async(store) => {
-            return store
+            // return store;
+            throw new Error("Restore Error for scenario 1")
         }
     },
     {
@@ -95,11 +119,13 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            return store
+            return store;
+            throw new Error("Call Error for scenario 2")
         },
         // callback for rollback
         restore: async(store) => {
-            return store
+            // return store;
+            throw new Error("Restore Error for scenario 2")
         }
     }
 ];
@@ -109,7 +135,7 @@ const transaction = new Transaction();
 (async() => {
     try {
         await transaction.dispatch(scenario);
-        // const store = transaction.store; // {} | null
+        const store = transaction.store; // {} | null
         const logs = transaction.logs; // []
         console.log(logs);
     } catch (err) {
