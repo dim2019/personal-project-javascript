@@ -78,10 +78,14 @@ class Transaction {
                             index: element.index,
                             meta: element.meta,
                             error: {
-                                CallErrorName: err.name,
-                                CallErrorMessage: err.message,
-                                RestoreErrorName: er.name,
-                                RestoreErrorMessage: er.message
+                                CallError: JSON.stringify({
+                                    Name: err.name,
+                                    Message: err.message,
+                                }),
+                                RestoreError: JSON.stringify({
+                                    Name: er.name,
+                                    Message: er.message
+                                })
                             }
                             // stack: err.stack                            
 
@@ -102,7 +106,6 @@ class Transaction {
                             for (var i = this.logs.length - 3; i >= 0; i--) {
                                 try {
                                     this.NewOBJForLogsRS = {};
-                                    // var Roll =
                                     Object.assign(this.NewOBJForLogsRS, {
                                         index: this.logs[i].index,
                                         meta: this.logs[i].meta,
@@ -113,10 +116,11 @@ class Transaction {
 
                                 } catch (err3) {
                                     Object.assign(this.NewOBJForLogsRS, {
-                                        index: this.logs[i].index,
-                                        meta: this.logs[i].meta,
-                                        Error: err3.message
-                                    })
+                                            index: this.logs[i].index,
+                                            meta: this.logs[i].meta,
+                                            Error: err3.message
+                                        })
+                                        // this.store = null
                                     this.logs.push(this.NewOBJForLogsRS);
                                 }
                             }
@@ -159,7 +163,7 @@ const scenario = [{
         },
         // callback for rollback
         restore: async(store) => {
-            return store;
+            // return store;
             throw new Error("Restore Error for scenario 2")
         }
     },
@@ -176,7 +180,7 @@ const scenario = [{
         },
         // callback for rollback
         restore: async(store) => {
-            // return store;
+            return store;
             throw new Error("Restored With Error scenario 3")
         }
     },
@@ -206,7 +210,7 @@ const transaction = new Transaction();
         await transaction.dispatch(scenario);
         const store = transaction.store; // {} | null
         const logs = transaction.logs; // []
-        console.log(logs);
+        console.log(store);
     } catch (err) {
         console.log(err.message);
         // log detailed error
