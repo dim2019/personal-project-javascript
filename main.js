@@ -2,14 +2,14 @@ class Transaction {
     constructor() {
         this.IndexARR = [];
         this.logs = [];
-        this.store = {};
+        this.store = null;
         this.storeBF = {};
         this.BeforeLogs = [];
         this.NewScenario = [];
         this.NewOBJForLogs = {};
     }
     async dispatch(scenario) {
-        scenario.forEach((element, key) => {
+        scenario.forEach((element) => {
             if (typeof element.index == 'undefined') {
                 throw new Error("Invalid object, index is required")
             } else if (typeof element.meta.title == 'undefined' || typeof element.meta.description == 'undefined') {
@@ -59,9 +59,7 @@ class Transaction {
                         }
                     })
                     this.logs.push(this.NewOBJForLogs);
-                    Object.assign(this.store, {
-                        error: err.message
-                    })
+                    this.store = {};
                 } else if (typeof element.restore !== 'undefined') {
                     try {
                         var Restored = await element.restore("rollBacked");
@@ -73,6 +71,7 @@ class Transaction {
                             storeAfter: Restored
                         })
                         this.storeBF = {};
+                        this.store = null
                         this.logs.push(this.NewOBJForLogs);
                     } catch (er) {
                         this.NewOBJForLogs = {};
@@ -87,9 +86,7 @@ class Transaction {
 
                         })
                         this.logs.push(this.NewOBJForLogs);
-                        Object.assign(this.store, {
-                            error: er.message
-                        })
+                        this.store = {};
                     }
 
                 }
@@ -106,8 +103,8 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            return 1;
-            // throw new Error("dima mezrishvili")
+            // return 1;
+            throw new Error("dima mezrishvili")
         },
         // // callback for rollback
         restore: async(store) => {
@@ -123,8 +120,8 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            return 2;
-            // throw new Error("Call Error for scenario 2")
+            // return 2;
+            throw new Error("Call Error for scenario 2")
         },
         // callback for rollback
         restore: async(store) => {
@@ -140,12 +137,12 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            // return 2;
+            return 2;
             throw new Error("Call Error for scenario 2")
         },
         // callback for rollback
         restore: async(store) => {
-            return store;
+            // return store;
             throw new Error("Restore Error for scenario 2")
         }
     },
@@ -157,7 +154,7 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            return 2;
+            // return 2;
             throw new Error("Call Error for scenario 2")
         },
         // callback for rollback
@@ -175,7 +172,7 @@ const transaction = new Transaction();
         await transaction.dispatch(scenario);
         const store = transaction.store; // {} | null
         const logs = transaction.logs; // []
-        console.log(logs);
+        console.log(store);
     } catch (err) {
         console.log(err.message);
         // log detailed error
