@@ -7,6 +7,7 @@ class Transaction {
         this.BeforeLogs = [];
         this.NewScenario = [];
         this.NewOBJForLogs = {};
+        this.NewOBJForLogsRS = {};
     }
     async dispatch(scenario) {
         scenario.forEach((element) => {
@@ -29,8 +30,7 @@ class Transaction {
                 }
             })
         }
-
-        for (var element of this.NewScenario) {
+        main: for (var element of this.NewScenario) {
             try {
                 var callValue = await element.call();
                 this.NewOBJForLogs = {};
@@ -48,7 +48,6 @@ class Transaction {
                 })
             } catch (err) {
                 if (typeof element.restore == 'undefined') {
-                    this.NewOBJForLogs = {};
                     Object.assign(this.NewOBJForLogs, {
                         index: element.index,
                         meta: element.meta,
@@ -62,7 +61,7 @@ class Transaction {
                     this.store = {};
                 } else if (typeof element.restore !== 'undefined') {
                     try {
-                        var Restored = await element.restore("rollBacked");
+                        var Restored = await element.restore("restored");
                         this.NewOBJForLogs = {};
                         Object.assign(this.NewOBJForLogs, {
                             index: element.index,
@@ -83,12 +82,39 @@ class Transaction {
                                 message: er.message,
                                 // stack: err.stack
                             }
-
                         })
                         this.logs.push(this.NewOBJForLogs);
                         this.store = {};
-                    }
+                        try {
 
+                            var Roll = await element.restore("restored");
+
+
+                        } catch (error3) {
+                            this.NewOBJForLogsRS = {}
+                            var k = this.logs.length - 1
+                            Object.assign(this.NewOBJForLogsRS, {
+                                index: this.logs[k].index,
+                                meta: this.logs[k].meta,
+                                Error: error3.message
+
+                            })
+                            this.logs.push(this.NewOBJForLogsRS);
+                            for (var i = this.logs.length - 3; i >= 0; i--) {
+                                this.NewOBJForLogsRS = {}
+                                Object.assign(this.NewOBJForLogsRS, {
+                                    index: this.logs[i].index,
+                                    meta: this.logs[i].meta,
+                                    storeAfter: "restored"
+
+                                })
+
+                                this.storeBF = {};
+                                this.logs.push(this.NewOBJForLogsRS);
+                            }
+                            break main
+                        }
+                    }
                 }
             }
         } /* loop ending*/
@@ -103,7 +129,7 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            // return 1;
+            return 1;
             throw new Error("dima mezrishvili")
         },
         // // callback for rollback
@@ -126,7 +152,7 @@ const scenario = [{
         // callback for rollback
         restore: async(store) => {
             return store;
-            // throw new Error("Restore Error for scenario 2")
+            throw new Error("Restore Error for scenario 2")
         }
     },
     {
@@ -137,13 +163,13 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            return 2;
-            throw new Error("Call Error for scenario 2")
+            // return 2;
+            throw new Error("Call Error for scenario 3")
         },
         // callback for rollback
         restore: async(store) => {
             // return store;
-            throw new Error("Restore Error for scenario 2")
+            throw new Error("Restored With Error scenario 3")
         }
     },
     {
@@ -154,7 +180,7 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            // return 2;
+            return 2;
             throw new Error("Call Error for scenario 2")
         },
         // callback for rollback
@@ -172,7 +198,7 @@ const transaction = new Transaction();
         await transaction.dispatch(scenario);
         const store = transaction.store; // {} | null
         const logs = transaction.logs; // []
-        console.log(store);
+        console.log(logs);
     } catch (err) {
         console.log(err.message);
         // log detailed error
