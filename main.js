@@ -78,18 +78,18 @@ class Transaction {
                             index: element.index,
                             meta: element.meta,
                             error: {
-                                name: er.name,
-                                message: er.message,
-                                // stack: err.stack
+                                CallErrorName: err.name,
+                                CallErrorMessage: err.message,
+                                RestoreErrorName: er.name,
+                                RestoreErrorMessage: er.message
                             }
+                            // stack: err.stack                            
+
                         })
                         this.logs.push(this.NewOBJForLogs);
                         this.store = {};
                         try {
-
-                            var Roll = await element.restore("restored");
-
-
+                            await element.restore("restored");
                         } catch (error3) {
                             this.NewOBJForLogsRS = {}
                             var k = this.logs.length - 1
@@ -97,20 +97,28 @@ class Transaction {
                                 index: this.logs[k].index,
                                 meta: this.logs[k].meta,
                                 Error: error3.message
-
                             })
                             this.logs.push(this.NewOBJForLogsRS);
                             for (var i = this.logs.length - 3; i >= 0; i--) {
-                                this.NewOBJForLogsRS = {}
-                                Object.assign(this.NewOBJForLogsRS, {
-                                    index: this.logs[i].index,
-                                    meta: this.logs[i].meta,
-                                    storeAfter: "restored"
+                                try {
+                                    this.NewOBJForLogsRS = {};
+                                    // var Roll =
+                                    Object.assign(this.NewOBJForLogsRS, {
+                                        index: this.logs[i].index,
+                                        meta: this.logs[i].meta,
+                                        storeAfter: await this.NewScenario[i].restore("restored")
+                                    })
+                                    this.storeBF = {};
+                                    this.logs.push(this.NewOBJForLogsRS);
 
-                                })
-
-                                this.storeBF = {};
-                                this.logs.push(this.NewOBJForLogsRS);
+                                } catch (err3) {
+                                    Object.assign(this.NewOBJForLogsRS, {
+                                        index: this.logs[i].index,
+                                        meta: this.logs[i].meta,
+                                        Error: err3.message
+                                    })
+                                    this.logs.push(this.NewOBJForLogsRS);
+                                }
                             }
                             break main
                         }
