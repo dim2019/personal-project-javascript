@@ -11,7 +11,7 @@ class Transaction {
     }
     async dispatch(scenario) {
         scenario.forEach((element) => {
-            if (typeof element.index == 'undefined') {
+            if (typeof element.index == 'undefined' || typeof element.index !== "number") {
                 throw new Error("Invalid object, index is required")
             } else if (typeof element.meta.title == 'undefined' || typeof element.meta.description == 'undefined') {
                 throw new Error("Invalid object, Meta is required to have title and description")
