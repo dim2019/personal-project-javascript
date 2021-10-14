@@ -68,6 +68,15 @@ class Transaction {
                             index: element.index,
                             meta: element.meta,
                             storeBefore: {},
+                            error: {
+                                CallError: JSON.stringify({
+                                    name: err.name,
+                                    message: err.message
+
+                                }),
+                                RestoreError: null
+
+                            },
                             storeAfter: Restored
                         })
                         this.storeBF = {};
@@ -163,7 +172,7 @@ const scenario = [{
         },
         // callback for main execution
         call: async(store) => {
-            return 1;
+            // return 1;
             throw new Error("dima mezrishvili")
         },
         // // callback for rollback
