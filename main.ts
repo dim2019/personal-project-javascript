@@ -3,7 +3,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
 {   
     class Transaction{
         IndexARR: number[]
-        logs: Array<CallSuccess | CallErrorWithoutRestore | CallErrorWithSuccessRestore | CallErrorWithFailedRestore | RollbackRestoreUndefind | RollbackRestoreSuccess | RollbackRestoreError> ;
+        logs: Array<CallSuccess | CallErrorWithoutRestore | CallErrorWithSuccessRestore | CallErrorWithFailedRestore | RollbackRestoreUndefind | RollbackRestoreSuccess | RollbackRestoreError>;
         store: {} | null;
         storeBF: {};
         BeforeLogs: any[];
@@ -54,7 +54,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
                         storeBefore: this.storeBF,
                         storeAfter: callValue,
                         error: null
-                    })
+                    } as CallSuccess)
                     this.logs.push(this.NewOBJForLogs as CallSuccess)
                     this.storeBF = {};
                     Object.assign(this.storeBF, {
@@ -71,7 +71,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
                                 name: ErrorForundefinedRestore.name,
                                 message: ErrorForundefinedRestore.message,
                             }
-                        })
+                        } as CallErrorWithoutRestore)
                         this.logs.push(this.NewOBJForLogs as CallErrorWithoutRestore);
                         this.store = {};
                     } else if (typeof element.restore !== 'undefined') {
@@ -92,7 +92,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
     
                                 },
                                 storeAfter: Restored
-                            })
+                            } as CallErrorWithSuccessRestore)
                             this.storeBF = {};
                             this.store = null
                             this.logs.push(this.NewOBJForLogs as CallErrorWithSuccessRestore);
@@ -114,7 +114,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
                                 }
                                 // stack: err.stack                            
     
-                            })
+                            } as CallErrorWithFailedRestore)
                             this.logs.push(this.NewOBJForLogs as CallErrorWithFailedRestore);
                             this.store = {};
                             try {
@@ -130,7 +130,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
                                         name: ErrorForRollbackTodescribeLastScenario.name,
                                         message: ErrorForRollbackTodescribeLastScenario.message
                                     }
-                                })
+                                } as RollbackRestoreError)
                                 this.logs.push(this.NewOBJForLogsRS as RollbackRestoreError);
                                 for (var i = this.logs.length - 3; i >= 0; i--) {
                                     if (typeof this.NewScenario[i].restore == 'undefined') {
@@ -142,7 +142,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
                                                 name: "restore is not defined"
                                             }
     
-                                        })
+                                        } as RollbackRestoreUndefind)
                                         this.storeBF = {};
                                         this.logs.push(this.NewOBJForLogsRS as RollbackRestoreUndefind);
     
@@ -154,7 +154,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
                                             index: this.logs[i].index,
                                             meta: this.logs[i].meta,
                                             storeAfter: await this.NewScenario[i].restore("restored")
-                                        })
+                                        } as RollbackRestoreSuccess)
                                         this.storeBF = {};
                                         this.logs.push(this.NewOBJForLogsRS as RollbackRestoreSuccess);
     
@@ -167,7 +167,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
                                                     name: ErrorForRollBackWhenRestoreIsFaild.name,
                                                     message: ErrorForRollBackWhenRestoreIsFaild.message
                                                 }
-                                            })
+                                            } as RollbackRestoreError)
                                         this.logs.push(this.NewOBJForLogsRS as RollbackRestoreError);
                                     }
                                 }
