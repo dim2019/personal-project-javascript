@@ -262,7 +262,7 @@ import { CallErrorWithFailedRestore, CallErrorWithoutRestore, CallErrorWithSucce
             console.log(logs);
         } catch (err) {
            var result = (err as Error);
-           console.log(result);
+           console.log(result.message);
            
         }
     })();
